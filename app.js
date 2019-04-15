@@ -1,22 +1,44 @@
-const express=  require('express');
-const bodyParser= require ('body-parser');
+const express = require('express');
+const bodyParser = require('body-parser');
 
-const graphqlHttp = require ('express-graphql');
-const  { buildSchema } = require ('graphql');
+const graphqlHttp = require('express-graphql');
+const {
+    buildSchema
+} = require('graphql');
 
-const app= express ();
+const events = []
+
+const app = express();
 
 app.use(bodyParser.json());
 
-app.use('/graphql',graphqlHttp(
-    {
-    schema:buildSchema(`
+app.use('/graphql', graphqlHttp({
+    schema: buildSchema(`
+
+        input  EventInput{
+            title:String!
+        description:String!
+        status:String!
+        startdate:String! 
+        enddate:String!
+
+        }
+
+        type Event {
+        _id:ID!
+        title:String!
+        description:String!
+        status:String!
+        startdate:String! 
+        enddate:String! 
+}
+
     type RootQuery{
-        events:[String!]
+        events:[Event!]!
 
     }
     type RootMutation{
-        createEvents(name:String):String
+        createEvents(eventInput:EventInput):Event
 
     }
     schema{
@@ -26,19 +48,27 @@ app.use('/graphql',graphqlHttp(
     
     `),
     rootValue: {
-        events:()=>{
-            
-            return ['Upadate frontend','Make new graphql api'];
-        } ,
-        createEvents:(args)=>{
-            console.log("aaa");
-            const evenName= args.name;
-            
-            return evenName;
+        events: () => {
 
+            return events;
+        },
+        createEvents: (args) => {
+            console.log("aaa");
+            const event = {
+                _id: 1,
+                title: args.eventInput.title,
+                description: args.eventInput.description,
+                status: args.eventInput.status,
+                startdate: new Date().toISOString(),
+                enddate: args.eventInput.enddate
+
+            }
+            events.push(event);
+            
+            return event;
         }
-       },
-       graphiql:true
-        }));
+    },
+    graphiql: true
+}));
 
 app.listen(3000);
