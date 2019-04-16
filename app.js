@@ -1,12 +1,15 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+
+const Event = require('./models/event');
 
 const graphqlHttp = require('express-graphql');
 const {
     buildSchema
 } = require('graphql');
 
-const events = []
+const events = [];
 
 const app = express();
 
@@ -50,25 +53,43 @@ app.use('/graphql', graphqlHttp({
     rootValue: {
         events: () => {
 
-            return events;
+          return  Event.find().then(
+                events=>{
+                    return events.map(events=>{
+                        console.log(events)
+                        return {...events._doc};
+                    })
+                }
+            ).catch(err=>{
+                console.log(err);
+                throw err;
+            });
         },
         createEvents: (args) => {
-            console.log("aaa");
-            const event = {
-                _id: 1,
+            const event = new Event({
                 title: args.eventInput.title,
                 description: args.eventInput.description,
                 status: args.eventInput.status,
                 startdate: new Date().toISOString(),
                 enddate: args.eventInput.enddate
-
-            }
-            events.push(event);
-            
-            return event;
+            })
+            return event
+            .save().then(result=>{
+                console.log(event)
+                return {...result._doc};
+            }).catch(err=>{
+                console.log(err);
+                throw err;
+            });
+           
         }
     },
     graphiql: true
 }));
 
-app.listen(3000);
+mongoose.connect(
+    `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0-u8njf.mongodb.net/test?retryWrites=true`).then(()=>{
+        app.listen(3000);
+}).catch(err=>{
+    console.log(err)
+});

@@ -1,0 +1,7 @@
+{
+    "env": {
+        "MONGO_USER": "Binod",
+        "MONGO_PASSWORD": "Binod",
+        "MONGO_DB":"events-angular"
+    }
+}
